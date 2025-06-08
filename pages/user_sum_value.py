@@ -13,8 +13,8 @@ st.subheader("Eligible Sum Assured Value")
 
 # Inputs
 age = st.number_input("Age", min_value=0)
-annual_income = st.number_input("Annual Income", min_value=0.0)
-policy_value = st.number_input("Existing Policies' Value", min_value=0.0)
+annual_income = st.number_input("Annual Income", min_value=0)
+policy_value = st.number_input("Existing Policies' Value", min_value=0)
 
 if st.button("Calculate Sum"):
     # Validation

@@ -1,14 +1,25 @@
 import streamlit as st
 import sidebar
+import firebase_admin
+from firebase_admin import credentials, firestore
+
+# === Firebase Init ===
+if not firebase_admin._apps:
+    cred = credentials.Certificate("path/to/your/firebase_key.json")  # Replace path
+    firebase_admin.initialize_app(cred)
+
+db = firestore.client()
+
+# === Sidebar and Style ===
 sidebar.render_sidebar()
 
-# === Load External CSS ===
 def local_css(file_name):
     with open(file_name) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 local_css("userstyle.css")
 
+# === Page Heading ===
 st.subheader("Lifestyle")
 
 # Option labels and corresponding numeric values
@@ -21,7 +32,7 @@ options = {
     "Always": 5
 }
 
-# Inputs
+# === User Inputs ===
 exercise_label = st.selectbox("Exercise", list(options.keys()))
 smoking_label = st.selectbox("Smoking", list(options.keys()))
 drinking_label = st.selectbox("Drinking", list(options.keys()))
@@ -36,28 +47,46 @@ if st.button("Submit"):
     job_hazard = options[job_hazard_label]
     mental_stress = options[mental_stress_label]
 
-    # Adjusted exercise
-    adjusted_exercise = 5 - exercise
+    # Fetch all company lifestyle documents
+    docs = db.collection("company_lifestyle").stream()
 
-    # Weights
-    weights = {
-        "exercise": 0.2,
-        "smoking": 0.25,
-        "drinking": 0.15,
-        "jobHazard": 0.2,
-        "mentalStress": 0.2,
+    # Initialize sum variables
+    total_docs = 0
+    sum_weights = {
+        "exercise": 0,
+        "smoking": 0,
+        "drinking": 0,
+        "job_hazard": 0,
+        "mental_stress": 0
     }
 
-    # Calculate weighted sum
+    for doc in docs:
+        data = doc.to_dict()
+        total_docs += 1
+        for key in sum_weights:
+            sum_weights[key] += data.get(key, 0)
+
+    if total_docs == 0:
+        st.error("No company lifestyle data available.")
+        st.stop()
+
+    # Compute average weights (converted to proportion, summing to 1.0)
+    avg_weights = {k: v / total_docs for k, v in sum_weights.items()}
+    total_weight = sum(avg_weights.values())
+    normalized_weights = {k: v / total_weight for k, v in avg_weights.items()}
+
+    # Adjusted exercise (higher is better)
+    adjusted_exercise = 5 - exercise
+
+    # Compute health score using averaged weights
     weighted_sum = (
-        adjusted_exercise * weights["exercise"] +
-        smoking * weights["smoking"] +
-        drinking * weights["drinking"] +
-        job_hazard * weights["jobHazard"] +
-        mental_stress * weights["mentalStress"]
+        adjusted_exercise * normalized_weights["exercise"] +
+        smoking * normalized_weights["smoking"] +
+        drinking * normalized_weights["drinking"] +
+        job_hazard * normalized_weights["job_hazard"] +
+        mental_stress * normalized_weights["mental_stress"]
     )
 
-    # Clamp result between 0 and 5
     health_score = max(0, min(5, weighted_sum))
-
     st.info(f"Your calculated health score is: **{health_score:.2f} / 5**")
+    st.session_state.health_score = health_score

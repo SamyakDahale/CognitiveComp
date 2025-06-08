@@ -56,6 +56,8 @@ if file:
         found_words = [word for word in extracted_text.lower().split() if word in medical_keywords]
         if found_words:
             st.write("**Matched Keywords:**", ", ".join(set(found_words)))
+            existing_diagnosis = found_words
+            st.session_state.existing_diagnosis = existing_diagnosis
         else:
             st.warning("No medical keywords matched.")
         with st.expander("View Full Extracted Text"):

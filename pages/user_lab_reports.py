@@ -88,7 +88,7 @@ if st.button("Submit"):
             extracted_text = extract_text_from_image(file_bytes)
 
         parsed_values = extract_medical_values(extracted_text)
-        st.markdown("#### 🔍 Extracted from file:")
+        st.markdown("# 🔍 Extracted from file:")
         st.json(parsed_values)
 
         all_values.update(parsed_values)
@@ -96,5 +96,7 @@ if st.button("Submit"):
     if all_values:
         prediction = predict_disease(all_values)
         st.success(f"🧬 Predicted Condition: **{prediction}**")
+        medical_condition = prediction
+        st.session_state.medical_conditions = medical_condition
     else:
         st.warning("Please enter test values manually or upload a valid report.")

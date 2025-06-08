@@ -24,6 +24,7 @@ def render_sidebar():
         st.sidebar.page_link("pages/user_lab_reports.py", label="🧪 Medical Test")
         st.sidebar.page_link("pages/user_lifestyle.py", label="🏃 Lifestyle Tracker")
         st.sidebar.page_link("pages/user_sum_value.py", label="➕ Existing Policy")
+        st.sidebar.page_link("pages/user_suggest_insurance.py", label="➕ Best Insurance Plans")
 
     elif user_type == "Company":
         st.sidebar.title("🏢 Company Menu")
